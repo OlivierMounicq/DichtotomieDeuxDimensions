@@ -8,8 +8,8 @@ namespace DichotomieDeuxDimensions
     {
         static void Main(string[] args)
         {
-            var width = 21;
-            var height = 31;
+            var width = 16;
+            var height = 16;
 
             var aera = new Aera(0, 0, width, height, 0);
 
@@ -389,7 +389,7 @@ namespace DichotomieDeuxDimensions
         public static int GetRGB(int index)
         {
             int[] p = GetPattern(index);
-            return GetElement(p[0] << 16 | GetElement(p[1]) << 8 | GetElement(p[2]));
+            return GetElement(p[0]) << 16 | GetElement(p[1]) << 8 | GetElement(p[2]);
         }
 
         private static int GetElement(int index)
