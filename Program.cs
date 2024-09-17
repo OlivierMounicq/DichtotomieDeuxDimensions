@@ -8,8 +8,8 @@ namespace DichotomieDeuxDimensions
     {
         static void Main(string[] args)
         {
-            var width = 16;
-            var height = 16;
+            var width = 256;
+            var height = 256;
 
             var aera = new Aera(0, 0, width, height, 0);
 
@@ -26,12 +26,12 @@ namespace DichotomieDeuxDimensions
             var maxDeepth = collections.Select(a => a.Deepth).Max();
             var dic = new Dictionary<int, IEnumerable<Aera>>();
 
-            foreach(var deepth in Enumerable.Range(0, maxDeepth))
+            foreach (var deepth in Enumerable.Range(0, maxDeepth))
             {
                 dic.Add(deepth, collections.Where(t => t.Deepth == deepth).ToList());
             }
 
-            ExcelGenerator.CreateExcelFile(@$"C:\tmp\decoupages-{width}x{height}_{DateTime.Now.Ticks}.xlsx", height, dic);
+            ExcelGenerator.CreateExcelFile(@$"C:\tmp\decoupages-{width}x{height}_{DateTime.Now.Ticks}.xlsx", width, height, dic);
 
             Console.WriteLine("Hello world");
         }
@@ -43,10 +43,10 @@ namespace DichotomieDeuxDimensions
 
             var x = 0;
             var y = 0;
-            var xp = 0; 
+            var xp = 0;
             var yp = 0;
 
-            if(aera.Length / 2d < 1 && aera.Height / 2d >= 1)
+            if (aera.Length / 2d < 1 && aera.Height / 2d >= 1)
             {
                 x = aera.Length;
                 y = (int)Math.Ceiling(aera.Height / 2d);
@@ -58,7 +58,7 @@ namespace DichotomieDeuxDimensions
                     CutUpAera(new Aera(aera.X, aera.Y + y, x, yp, aera.Deepth + 1))
                 };
             }
-            else if(aera.Length / 2d >= 1 && aera.Height / 2d < 1)
+            else if (aera.Length / 2d >= 1 && aera.Height / 2d < 1)
             {
                 x = (int)Math.Ceiling(aera.Length / 2d);
                 y = aera.Height;
@@ -75,8 +75,8 @@ namespace DichotomieDeuxDimensions
                 x = (int)Math.Ceiling(aera.Length / 2d);
                 y = (int)Math.Ceiling(aera.Height / 2d);
 
-                xp = aera.Length %2 == 0 ? x : x - 1;
-                yp = aera.Height  % 2 == 0 ? y : y - 1;
+                xp = aera.Length % 2 == 0 ? x : x - 1;
+                yp = aera.Height % 2 == 0 ? y : y - 1;
 
                 aera.SubAera = new List<Aera>
                 {
@@ -106,8 +106,8 @@ namespace DichotomieDeuxDimensions
         {
             collection.Add(aera);
 
-            if(aera.SubAera != null)
-                foreach(var a in aera.SubAera)
+            if (aera.SubAera != null)
+                foreach (var a in aera.SubAera)
                     GetAllAeras(a, collection);
         }
     }
@@ -118,7 +118,7 @@ namespace DichotomieDeuxDimensions
         {
             string columnName = string.Empty;
 
-            while (columnNumber > 0) 
+            while (columnNumber > 0)
             {
                 int modulo = (columnNumber - 1) % 26;
                 columnName = Convert.ToChar('A' + modulo) + columnName;
@@ -137,7 +137,7 @@ namespace DichotomieDeuxDimensions
 
     public class ExcelGenerator
     {
-        public static void CreateExcelFile(string filePath, int width,  int height, IEnumerable<Aera> aeras) 
+        public static void CreateExcelFile(string filePath, int width, int height, IEnumerable<Aera> aeras)
         {
             var qtyColoredAears = aeras.GroupBy(t => t.Id, (k, v) => k).Distinct().Count();
             var dic = aeras.GroupBy(t => t.Id, (k, v) => k).Distinct().Select((k, i) => new { Id = k.ToString(), Index = i + 1 }).ToDictionary(t => t.Id, t => t.Index);
@@ -162,10 +162,10 @@ namespace DichotomieDeuxDimensions
                 var sheet = new Sheet() { Id = relationshipId, SheetId = sheetId, Name = "Test" };
                 sheets.Append(sheet);
 
-                foreach(var idRow in Enumerable.Range(1, height))
+                foreach (var idRow in Enumerable.Range(1, height))
                 {
                     var row = new Row { RowIndex = (UInt32)idRow };
-                    foreach(var idCol in Enumerable.Range(1, width))
+                    foreach (var idCol in Enumerable.Range(1, width))
                     {
                         var str = aeras.First(t => t.X == idCol - 1 && t.Y == height - idRow).Id.ToString();
                         var cell = new Cell { CellReference = $"{ExcelHelper.GetExcelColumnName(idCol)}{idRow}" };
@@ -174,15 +174,15 @@ namespace DichotomieDeuxDimensions
                         cell.StyleIndex = UInt32Value.FromUInt32((UInt32)dic[str]);
                         row.AppendChild(cell);
                     }
-                    sheetData.AppendChild(row); 
+                    sheetData.AppendChild(row);
                 }
 
                 workbookPart.Workbook.Save();
             }
-        
+
         }
 
-        public static void CreateExcelFile(string filepPath, int height, Dictionary<int, IEnumerable<Aera>> aeraDic)
+        public static void CreateExcelFile(string filepPath, int width, int height, Dictionary<int, IEnumerable<Aera>> aeraDic)
         {
             var maxKey = aeraDic.Select(t => t.Key).Max();
             var qtyColoredAeras = aeraDic[maxKey].Count();
@@ -198,7 +198,7 @@ namespace DichotomieDeuxDimensions
                 stylePart.Stylesheet = CreateStyleSheet(qtyColoredAeras);
                 stylePart.Stylesheet.Save();
 
-                foreach(var keyValuePair in aeraDic)
+                foreach (var keyValuePair in aeraDic)
                 {
                     ++sheetId;
 
@@ -215,20 +215,20 @@ namespace DichotomieDeuxDimensions
                     var dic = aeras.GroupBy(t => t.Id, (k, v) => k).Distinct().Select((k, i) => new { Id = k.ToString(), Index = i + 1 }).ToDictionary(t => t.Id, t => t.Index);
                     var dicStr = aeras.GroupBy(t => t.Id, (k, v) => k).Distinct().Select((k, i) => new { Id = k.ToString(), Str = ExcelHelper.GetExcelColumnName(i + 1) }).ToDictionary(t => t.Id, t => t.Str);
 
-                    foreach(var idRow in Enumerable.Range(1, height))
+                    foreach (var idRow in Enumerable.Range(1, height))
                     {
                         var row = new Row { RowIndex = (UInt32)idRow };
-                        sheetData.AppendChild(row); 
+                        sheetData.AppendChild(row);
                     }
 
                     var idx = 0;
 
-                    foreach(var a in aeras)
+                    foreach (var a in aeras)
                     {
                         idx++;
-                        foreach(var i in Enumerable.Range(1, a.Length))
+                        foreach (var i in Enumerable.Range(1, a.Length))
                         {
-                            foreach(var j in Enumerable.Range(1,a.Height))
+                            foreach (var j in Enumerable.Range(1, a.Height))
                             {
                                 var iRef = a.X + i;
                                 var jRef = a.Y + j;
@@ -240,6 +240,16 @@ namespace DichotomieDeuxDimensions
                             }
                         }
                     }
+
+                    var columns = sheetPart.Worksheet.GetFirstChild<Columns>();
+                    if(columns == null)
+                        columns = new Columns();
+
+                    foreach (var colIdx in Enumerable.Range(1, width))
+                    {
+                        columns.Append(new Column { Min = UInt32Value.FromUInt32((UInt32)colIdx), Max = UInt32Value.FromUInt32((UInt32)colIdx), Width = 3, CustomWidth = true });
+                    }
+                    sheetPart.Worksheet.InsertAt(columns, 0);
                 }
 
                 workbookPart.Workbook.Save(workbookPart);
@@ -253,13 +263,13 @@ namespace DichotomieDeuxDimensions
             //----------------------------------------------------------
             // Fonts
             //----------------------------------------------------------
-            styleSheet.Fonts = new DocumentFormat.OpenXml.Spreadsheet.Fonts();
+            styleSheet.Fonts = new Fonts();
 
-            var font = new DocumentFormat.OpenXml.Spreadsheet.Font();
+            var font = new Font();
             styleSheet.Fonts.Append(font);
 
-            font = new DocumentFormat.OpenXml.Spreadsheet.Font();
-            font.Bold = new DocumentFormat.OpenXml.Spreadsheet.Bold();
+            font = new Font();
+            font.Bold = new Bold();
             font.Bold.Val = BooleanValue.FromBoolean(true);
             styleSheet.Fonts.Append(font);
 
@@ -294,7 +304,7 @@ namespace DichotomieDeuxDimensions
 
             var temp = new List<string>();
 
-            foreach(var idColor in Enumerable.Range(1, colorQuantity))
+            foreach (var idColor in Enumerable.Range(1, colorQuantity))
             {
                 var colorHex = ColorGenerator.GetRGB(idColor + 200).ToString("X");
                 temp.Add(colorHex);
@@ -322,13 +332,13 @@ namespace DichotomieDeuxDimensions
             //----------------------------------------------------------
             // Cell Formats
             //----------------------------------------------------------
-            styleSheet.CellFormats = new CellFormats(); 
+            styleSheet.CellFormats = new CellFormats();
 
             // index 0 : Default call format
             var cellFormat = new CellFormat();
             styleSheet.CellFormats.Append(cellFormat);
 
-            foreach(var idColor in Enumerable.Range(1, colorQuantity))
+            foreach (var idColor in Enumerable.Range(1, colorQuantity))
             {
                 cellFormat = new CellFormat();
                 cellFormat.FillId = UInt32Value.FromUInt32((UInt32)(idColor + 2));
@@ -396,7 +406,7 @@ namespace DichotomieDeuxDimensions
         {
             int value = index - 1;
             int v = 0;
-            for(int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
             {
                 v = v | (value & 1);
                 v <<= 1;
@@ -419,7 +429,7 @@ namespace DichotomieDeuxDimensions
             index--;
             int v = index % 3;
             index = index / 3;
-            if(index < n)
+            if (index < n)
             {
                 p[v] = index % n;
                 return p;
